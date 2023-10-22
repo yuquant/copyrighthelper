@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="./public/1.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文本训练平台</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
+
+import { createApp } from 'vue';
+import './style.css';
+import App from './App.vue';
+import router from './router';
+import ElementPlus from 'element-plus';
+import * as ElementPlusIconsVue from '@element-plus/icons-vue';
+import '../node_modules/element-plus/dist/index.css';
+import { createPinia } from 'pinia';
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
+const app = createApp(App);
+const pinia = createPinia();
+pinia.use(piniaPluginPersistedstate);
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(key, component);
+}
+app.use(ElementPlus);
+app.use(router);
+app.use(pinia);
+app.mount('#app');
+
+<script setup>
+//引入中文包
+import zhCN from "element-plus/dist/locale/zh-cn.mjs";
+import { onUnmounted } from "vue";
+//销毁时清除token
+onUnmounted(() => {
+  localStorage.removeItem("token");
+})
+</script>
+
+<template>
+  <!-- 使用中文包 -->
+  <el-config-provider :locale="zhCN">
+    <router-view></router-view>
+  </el-config-provider>
+</template>
+
+<style scoped></style>
+import { createRouter, createWebHistory } from 'vue-router';
+import { useUserStore } from '../store/useUserStore';
+//所有的子页面
+const layoutMap = [
+  {
+    path: 'model',
+    name: 'model',
+    meta: { title: '模型列表' },
+    component: () => import('../pages/model/modelList.vue'),
+  },
+  {
+    path: 'model/info',
+    name: 'modelinfo',
+    meta: { title: '模型详情' },
+    component: () => import('../pages/model/modelInfo.vue'),
+  },
+  {
+    path: 'model/info/training',
+    name: 'training',
+    meta: { title: '模型训练' },
+    component: () => import('../pages/model/modeltrain.vue'),
+  },
+  {
+    path: 'model/info/trainhistory',
+    name: 'trainhistory',
+    meta: { title: '训练记录' },
+    component: () => import('../pages/model/modelTrainHistory.vue'),
+  },
+  {
+    path: 'project',
+    name: 'project',
+    meta: { title: '项目列表' },
+    component: () => import('../pages/project/projectList.vue'),
+  },
+  {
+    path: 'project/projectinfo',
+    name: 'projectinfo',
+    meta: { title: '项目详情' },
+    component: () => import('../pages/project/projectInfo.vue'),
+  },
+  {
+    path: 'project/projectinfo/forecastdata',
+    name: 'forecastdata',
+    meta: { title: '预测数据' },
+    component: () => import('../pages/project/forecastData.vue'),
+  },
+
+  {
+    path: 'system/manageprojectcol',
+    name: 'manageprojectcol',
+    meta: { title: '项目列设置' },
+    component: () => import('../pages/system/manageProjectCol.vue'),
+  },
+];
+const routes = [
+  //一级路由
+  {
+    path: '/login',
+    name: 'login',
+    meta: { title: '登录' },
+    component: () => import('../pages/login.vue'),
+  },
+  {
+    path: '/',
+    component: () => import('../pages/layout/home.vue'),
+
+    //重定向到二级路由
+    redirect: { name: 'project' },
+    //加载二级路由
+    children: [...layoutMap],
+  },
+];
+
+export const router = createRouter({
+  //传入打包目录
+  history: createWebHistory('/h5/'),
+  routes: routes,
+});
+router.beforeEach((to, from, next) => {
+  //验证是否存在token  当不存在时跳转到登录界面
+  let token = localStorage.getItem('token');
+  if (token == null || token == '') {
+    //当在登录界面时放行
+    if (to.path == '/login') {
+      next();
+    } else {
+      next({ path: '/login' });
+    }
+  } else {
+    //路由切换时修改title
+    if (to.meta.title) {
+      document.title = '文本训练平台-' + to.meta.title;
+    }
+    //导航的高亮判断设置
+    if (to.path.indexOf('model') != -1) {
+      useUserStore.defaultActive = '/model';
+    }
+    if (to.path.indexOf('project') != -1) {
+      useUserStore.defaultActive = '/project';
+    }
+    if (to.path.indexOf('system') != -1) {
+      useUserStore.defaultActive = to.path;
+    }
+    next();
+  }
+});
+
+export default router;
+import { defineStore } from 'pinia';
+/**
+ * 定义用户登录后存储登录状态
+ * defaultActive记录导航的高亮状态 切换路由时记录
+ */
+export const useUserStore = defineStore('useUserStore', {
+  state: () => ({
+    user: {
+      fUserId: '123456',
+      fUserTitle: 'admin',
+      fUserName: '',
+    },
+    defaultActive: '',
+  }),
+  //类似computed 可以帮我们去修饰我们的值
+  getters: {},
+  //可以操作异步 和 同步提交state
+  actions: {},
+  //开启持久化
+  persist: {
+    storage: localStorage,
+  },
+});
