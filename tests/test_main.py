@@ -18,6 +18,11 @@ class TestFunctions(unittest.TestCase):
         from copyright_helper import write_cleaned_code_to_doc
         write_cleaned_code_to_doc(file, doc_path)
 
+        file = './files/python_code.txt'
+        doc_path = './files/code.docx'
+        from copyright_helper import write_cleaned_code_to_doc
+        write_cleaned_code_to_doc(file, doc_path)
+
 
 if __name__ == '__main__':
     unittest.main()
