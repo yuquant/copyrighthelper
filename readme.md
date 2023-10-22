@@ -35,7 +35,10 @@ write_cleaned_code_to_doc(code_src=file, doc_path=doc_path)
 - directory;
 
 ## TODO
-- online version
-- show line nums 
-目前输出的文件没有显示行号，需要用wps或者word打开后，选择 页面>行号>连续  ，即可显示行号，保存文件即可
-- add token changed every day
+- web页面
+- 显示行号   
+目前输出的文件没有显示行号，需要用wps或者word打开后，选择 页面>行号>连续  ，即可显示行号，保存文件即可   
+- 更精确的页数   
+目前输出页数可能略多于60页，需要手动删除   
+- 队列任务
+- 上传文件的安全性和大小验证
